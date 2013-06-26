@@ -8,7 +8,7 @@ import cPickle, gzip, os, math
 
 
 def read_set():
-    with gzip.open((os.path.join(os.path.pardir, os.path.join('dataset', 'mnist.pkl.gz')))) as f:
+    with gzip.open(os.path.join(os.path.pardir, os.path.join(os.path.pardir, os.path.join('dataset', 'mnist.pkl.gz')))) as f:
         return cPickle.load(f)
     # sample = 435
     # print train_set[1][sample]
@@ -58,9 +58,14 @@ def nn_cost_function(nn_params, input_layer_size, num_hidden_layers, hidden_laye
     for l in range(num_hidden_layers + 1):
         z = np.dot(x, nn_params[l].T)
         a = sigmoid(z)
-        print z
+        print 'x:\n', x
+        print 'theta:\n', nn_params[l]
+        print 'z:\n', z
+        print 'a:\n', a
+        print '\n'
         activations.append({'a': a, 'z': z})
         x = np.atleast_2d(np.insert(a, 0, 1, 1))
+    print '\n'
     print 'Activations:\n', activations, '\n'
     hypothesis = activations[-1]['a']
 
@@ -116,7 +121,7 @@ train_set, valid_set, test_set = read_set()
 # print np.atleast_2d([1,2,3,4,5,6,7,8,9,0,1,2,3,4,5,6,7,8,19,0,1,2,3,4,5,6,7,8,9,0])
 # print np.array([[1],[0]]).shape
 params = rand_initialize_weights(INPUT_LAYER_SIZE, NUM_HIDDEN_LAYERS, HIDDEN_LAYER_SIZE, NUM_LABELS)
-nn_cost_function(params, INPUT_LAYER_SIZE, NUM_HIDDEN_LAYERS, HIDDEN_LAYER_SIZE, NUM_LABELS, np.atleast_2d([[0.123],[0.321]]), np.asarray([1, 0], dtype=int), 1)
+nn_cost_function(params, INPUT_LAYER_SIZE, NUM_HIDDEN_LAYERS, HIDDEN_LAYER_SIZE, NUM_LABELS, np.atleast_2d([[0.123]]), np.asarray([1, 0], dtype=int), 1)
 # print np.square(params)
 # print np.asmatrix(np.square(params)).cumsum()
 # print train_set[1][443]

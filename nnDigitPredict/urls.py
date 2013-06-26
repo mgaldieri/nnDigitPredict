@@ -6,7 +6,7 @@ admin.autodiscover()
 
 urlpatterns = patterns('',
     # Examples:
-    # url(r'^$', 'nnDigitPredict.views.home', name='home'),
+    url(r'^$', 'nnDigitPredict.views.home', name='home'),
     # url(r'^nnDigitPredict/', include('nnDigitPredict.foo.urls')),
 
     # Uncomment the admin/doc line below to enable admin documentation:

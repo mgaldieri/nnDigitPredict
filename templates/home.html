@@ -2,7 +2,27 @@
 <head><title>Reconhecendo caracteres</title>
 <script type="text/javascript" src="{% static "jquery-2.0.2.min.js" %}"></script>
 <script type="text/javascript">
+function getCookie(name) {
+    var cookieValue = null;
+    if (document.cookie && document.cookie != '') {
+        var cookies = document.cookie.split(';');
+        for (var i = 0; i < cookies.length; i++) {
+            var cookie = jQuery.trim(cookies[i]);
+            // Does this cookie string begin with the name we want?
+            if (cookie.substring(0, name.length + 1) == (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
 $( document ).ready(function() {
+$.ajaxSetup({
+    beforeSend: function(xhr, settings) {
+      xhr.setRequestHeader("X-CSRFToken", getCookie('csrftoken'));
+    }
+  });
   function stopDefault(e) {
     if (e && e.preventDefault) {
         e.preventDefault();
@@ -36,7 +56,14 @@ $( document ).ready(function() {
   });
   var o=function(e){
     var canvas=e.target;
-    if(canvas.drawing) delete(canvas.drawing);
+    if(!canvas.drawing) return;
+    delete(canvas.drawing);
+    $.post('/look',
+        {
+            img : canvas.toDataURL('image/jpeg')
+        },
+        function(data) {});
+    
   };
   $('canvas').mouseup(o);
   $('canvas').mouseout(o);
@@ -48,7 +75,12 @@ $( document ).ready(function() {
     renderize();
     console.debug(canvas.offsetLeft);
   });
-  
+  $("a#reset").click(function(e){
+    var canvas=$('canvas')[0];
+    var context = canvas.getContext('2d');
+    context.clearRect(0, 0, canvas.width, canvas.height);
+    canvas.clearRect();
+  });
 });
 </script>
 </head>
@@ -74,10 +106,10 @@ $( document ).ready(function() {
 		color:white;
 	}
 	body{
-  -moz-user-select: none;
-  -khtml-user-select: none;
-  -webkit-user-select: none;
-  user-select: none;
+    -moz-user-select: none;
+    -khtml-user-select: none;
+    -webkit-user-select: none;
+    user-select: none;
   }
 </style>
 
@@ -86,6 +118,6 @@ $( document ).ready(function() {
 <canvas width="430" height="430"></canvas>
 
 <div id='result'>8</div>
-
+<a href="javascript:void(0);" id="reset">reset</a>
 </body>
 </html>

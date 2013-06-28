@@ -62,10 +62,10 @@ def nn_cost_function(nn_params, input_layer_size, num_hidden_layers, hidden_laye
         print 'theta:\n', nn_params[l]
         print 'z:\n', z
         print 'a:\n', a
-        print '\n'
+        print ''
         activations.append({'a': a, 'z': z})
         x = np.atleast_2d(np.insert(a, 0, 1, 1))
-    print '\n'
+    print '-----\n'
     print 'Activations:\n', activations, '\n'
     hypothesis = activations[-1]['a']
 

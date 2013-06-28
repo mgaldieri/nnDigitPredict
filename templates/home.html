@@ -1,19 +1,69 @@
 {% load staticfiles %}<html>
 <head><title>Reconhecendo caracteres</title>
 <script type="text/javascript" src="{% static "jquery-2.0.2.min.js" %}"></script>
+<script type="text/javascript">
+$( document ).ready(function() {
+  function stopDefault(e) {
+    if (e && e.preventDefault) {
+        e.preventDefault();
+    }
+    else {
+        window.event.returnValue = false;
+    }
+    return false;
+  }
+  var path=[];
+    function renderize(){
+        var canvas = $('canvas')[0];
+      var context = canvas.getContext('2d');
+      // set line width for all lines
+      context.lineWidth = 25;
+      // round line join (middle)
+      context.beginPath();
+      context.moveTo(path[path.length-1][0].x, path[path.length-1][0].y);
+      for(var i=1;i<path[path.length-1].length; i++){
+        context.lineTo(path[path.length-1][i].x, path[path.length-1][i].y);
+      }
+      context.lineJoin = 'round';
+      context.stroke();
+  }
+  
+  
+  $('canvas').mousedown(function(e){
+    var canvas=e.target;
+    if(!canvas.drawing) canvas.drawing=true;
+    path.push([]);
+  });
+  var o=function(e){
+    var canvas=e.target;
+    if(canvas.drawing) delete(canvas.drawing);
+  };
+  $('canvas').mouseup(o);
+  $('canvas').mouseout(o);
+  $('canvas').mousemove(function(e){
+    var canvas=e.target;
+    if(!canvas.drawing) return;
+    var context = canvas.getContext('2d');
+    path[path.length-1].push({x:e.pageX-canvas.offsetLeft,y:e.pageY-canvas.offsetTop});
+    renderize();
+    console.debug(canvas.offsetLeft);
+  });
+  
+});
+</script>
 </head>
 
 <style type='text/css'>
 	body{ 
 		background-color:black;
-		background-image: url("../nnDigitPredict/static/img/bg.jpg"); 
+		background-image: url("/static/img/bg.jpg"); 
 		background-repeat:no-repeat 
 	}
 	canvas{ 
 		position:absolute;
 		top:202px; left:105px;
 		width:430px; height:430px;  
-		border:1px solid orange
+		border:0 solid orange
 	}
 	#result{
 		position:absolute;
@@ -23,11 +73,17 @@
 		font-weight:bold;
 		color:white;
 	}
+	body{
+  -moz-user-select: none;
+  -khtml-user-select: none;
+  -webkit-user-select: none;
+  user-select: none;
+  }
 </style>
 
 <body>
 
-<canvas></canvas>
+<canvas width="430" height="430"></canvas>
 
 <div id='result'>8</div>
 

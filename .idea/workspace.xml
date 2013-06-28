@@ -2,23 +2,14 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="acbf9b24-92a6-4d23-b8f2-46fc78e2ebb4" name="Default" comment="">
-      <change type="MOVED" beforePath="$PROJECT_DIR$/static/jquery-2.0.2.min.js" afterPath="$PROJECT_DIR$/nnDigitPredict/static/jquery-2.0.2.min.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.gitignore" afterPath="$PROJECT_DIR$/.gitignore" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/misc.xml" afterPath="$PROJECT_DIR$/.idea/misc.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/NeuralPredict/utils/nn.py" afterPath="$PROJECT_DIR$/NeuralPredict/utils/nn.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/nnDigitPredict.iml" afterPath="$PROJECT_DIR$/.idea/nnDigitPredict.iml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/requirements.txt" afterPath="$PROJECT_DIR$/requirements.txt" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/nnDigitPredict/settings.py" afterPath="$PROJECT_DIR$/nnDigitPredict/settings.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/nnDigitPredict/urls.py" afterPath="$PROJECT_DIR$/nnDigitPredict/urls.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/vcs.xml" afterPath="$PROJECT_DIR$/.idea/vcs.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/NeuralPredict/views.py" afterPath="$PROJECT_DIR$/NeuralPredict/views.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
     </list>
     <ignored path="nnDigitPredict.iws" />
     <ignored path=".idea/workspace.xml" />
     <file path="/views.py" changelist="acbf9b24-92a6-4d23-b8f2-46fc78e2ebb4" time="1372438047655" ignored="false" />
-    <file path="/settings.py" changelist="acbf9b24-92a6-4d23-b8f2-46fc78e2ebb4" time="1372437633055" ignored="false" />
-    <file path="/Dummy.txt" changelist="acbf9b24-92a6-4d23-b8f2-46fc78e2ebb4" time="1372435292423" ignored="false" />
+    <file path="/settings.py" changelist="acbf9b24-92a6-4d23-b8f2-46fc78e2ebb4" time="1372438673603" ignored="false" />
+    <file path="/Dummy.txt" changelist="acbf9b24-92a6-4d23-b8f2-46fc78e2ebb4" time="1372438127075" ignored="false" />
     <file path="/.gitignore" changelist="acbf9b24-92a6-4d23-b8f2-46fc78e2ebb4" time="1372437419425" ignored="false" />
     <file path="/nn.py" changelist="acbf9b24-92a6-4d23-b8f2-46fc78e2ebb4" time="1372273072009" ignored="false" />
     <file path="/urls.py" changelist="acbf9b24-92a6-4d23-b8f2-46fc78e2ebb4" time="1372437866646" ignored="false" />
@@ -41,10 +32,10 @@
   </component>
   <component name="FileEditorManager">
     <leaf>
-      <file leaf-file-name="settings.py" pinned="false" current="false" current-in-tab="false">
+      <file leaf-file-name="settings.py" pinned="false" current="true" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/nnDigitPredict/settings.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="65" column="70" selection-start="2389" selection-end="2389" vertical-scroll-proportion="0.0">
+            <state line="65" column="2" selection-start="2321" selection-end="2321" vertical-scroll-proportion="0.37220845">
               <folding />
             </state>
           </provider>
@@ -97,10 +88,10 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="views.py" pinned="false" current="true" current-in-tab="true">
+      <file leaf-file-name="views.py" pinned="false" current="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/NeuralPredict/views.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="3" column="31" selection-start="99" selection-end="99" vertical-scroll-proportion="0.10817308">
+            <state line="3" column="31" selection-start="99" selection-end="99" vertical-scroll-proportion="0.0">
               <folding />
             </state>
           </provider>
@@ -137,9 +128,9 @@
       <list>
         <option value="$PROJECT_DIR$/NeuralPredict/utils/nn.py" />
         <option value="$PROJECT_DIR$/.gitignore" />
-        <option value="$PROJECT_DIR$/nnDigitPredict/settings.py" />
         <option value="$PROJECT_DIR$/nnDigitPredict/urls.py" />
         <option value="$PROJECT_DIR$/NeuralPredict/views.py" />
+        <option value="$PROJECT_DIR$/nnDigitPredict/settings.py" />
       </list>
     </option>
   </component>
@@ -495,13 +486,18 @@
       <created>1372272741300</created>
       <updated>1372272741300</updated>
     </task>
-    <option name="localTasksCounter" value="4" />
+    <task id="LOCAL-00004" summary="Erros de namespace resolvidos.">
+      <created>1372438130906</created>
+      <updated>1372438130906</updated>
+    </task>
+    <option name="localTasksCounter" value="5" />
     <servers />
   </component>
   <component name="ToolWindowManager">
     <frame x="-1" y="-4" width="1282" height="805" extended-state="6" />
     <editor active="true" />
     <layout>
+      <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Changes" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Database" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
@@ -517,7 +513,6 @@
       <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
-      <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="SLIDING" type="SLIDING" visible="false" weight="0.4" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Hierarchy" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="2" side_tool="false" content_ui="combo" />
       <window_info id="Inspection" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
@@ -565,7 +560,7 @@
     <option name="WRAP_WHEN_TYPING_REACHES_RIGHT_MARGIN" value="false" />
     <option name="FORCE_NON_EMPTY_COMMENT" value="false" />
     <option name="CLEAR_INITIAL_COMMIT_MESSAGE" value="false" />
-    <option name="LAST_COMMIT_MESSAGE" value="Bug in requirements.txt fixed." />
+    <option name="LAST_COMMIT_MESSAGE" value="Erros de namespace resolvidos." />
     <option name="MAKE_NEW_CHANGELIST_ACTIVE" value="false" />
     <option name="OPTIMIZE_IMPORTS_BEFORE_PROJECT_COMMIT" value="false" />
     <option name="CHECK_FILES_UP_TO_DATE_BEFORE_COMMIT" value="false" />
@@ -582,6 +577,7 @@
     <MESSAGE value="Added requirements.txt file. Moved nn algo to utils folder." />
     <MESSAGE value="Added scipy to requirements.txt. Added .gitignore." />
     <MESSAGE value="Bug in requirements.txt fixed." />
+    <MESSAGE value="Erros de namespace resolvidos." />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -679,13 +675,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/nnDigitPredict/settings.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="65" column="70" selection-start="2389" selection-end="2389" vertical-scroll-proportion="0.0">
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/templates/home.html">
       <provider selected="true" editor-type-id="text-editor">
         <state line="2" column="47" selection-start="121" selection-end="121" vertical-scroll-proportion="-1.25">
@@ -704,7 +693,14 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/NeuralPredict/views.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="3" column="31" selection-start="99" selection-end="99" vertical-scroll-proportion="0.10817308">
+        <state line="3" column="31" selection-start="99" selection-end="99" vertical-scroll-proportion="0.0">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/nnDigitPredict/settings.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="65" column="2" selection-start="2321" selection-end="2321" vertical-scroll-proportion="0.37220845">
           <folding />
         </state>
       </provider>

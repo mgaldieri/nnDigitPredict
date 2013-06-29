@@ -8,6 +8,7 @@ admin.autodiscover()
 urlpatterns = patterns('',
     # Examples:
     url(r'^$', 'NeuralPredict.views.home', name='home'),
+    url(r'^look$', 'NeuralPredict.views.look', name='look'),
     # url(r'^nnDigitPredict/', include('nnDigitPredict.foo.urls')),
 
     # Uncomment the admin/doc line below to enable admin documentation:

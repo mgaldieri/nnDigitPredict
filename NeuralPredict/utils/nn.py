@@ -4,7 +4,7 @@ from scipy.optimize import fmin_l_bfgs_b
 from time import time
 from datetime import timedelta
 import numpy as np
-import Image as im
+import Image as pil
 import cPickle, gzip, os, math
 
 
@@ -145,7 +145,9 @@ def nn_run(nn_params, nn_topology, X):
     return hypothesis.argmax(axis=1)
 
 
-def predict(X):
+def predict(img):
+    thumb = pil.thumbnail((IMAGE_SIDE,IMAGE_SIDE), pil.ANTIALIAS)
+    X = np.array(thumb)
     rand_params, topo = rand_initialize_weights(INPUT_LAYER_SIZE, NUM_HIDDEN_LAYERS, HIDDEN_LAYER_SIZE, NUM_LABELS)
     if os.path.exists(PARAMS_FILE):
         with gzip.open(PARAMS_FILE, 'rb') as f:

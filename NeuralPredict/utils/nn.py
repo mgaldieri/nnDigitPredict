@@ -8,6 +8,20 @@ import Image as im
 import cPickle, gzip, os, math
 
 
+#
+# Constants
+#
+IMAGE_SIDE = 28
+INPUT_LAYER_SIZE = IMAGE_SIDE**2
+NUM_HIDDEN_LAYERS = 1
+HIDDEN_LAYER_SIZE = 25
+NUM_LABELS = 10
+REG_LAMBDA = 2.5
+# NUM_ITERATIONS = 400
+
+PARAMS_FILE = 'params.pkl.gz'
+
+
 def read_set():
     with gzip.open(os.path.join(os.path.pardir, os.path.join(os.path.pardir, os.path.join('dataset', 'mnist.pkl.gz')))) as f:
         return cPickle.load(f)
@@ -117,7 +131,7 @@ def nn_cost_function(nn_params, nn_topology, num_hidden_layers, num_labels, X, y
     return J, np.concatenate([a.flatten() for a in params_grad])
 
 
-def predict(nn_params, nn_topology, X):
+def nn_run(nn_params, nn_topology, X):
     # unroll params
     params = unroll_params(nn_params, nn_topology)
 
@@ -128,50 +142,52 @@ def predict(nn_params, nn_topology, X):
         a = sigmoid(z)
         x = np.atleast_2d(np.insert(a, 0, 1, 1))
     hypothesis = a
-    # print 'Hypothesis:\n', hypothesis
     return hypothesis.argmax(axis=1)
 
 
-#
-# Constants
-#
-IMAGE_SIDE = 28
-INPUT_LAYER_SIZE = IMAGE_SIDE**2
-NUM_HIDDEN_LAYERS = 1
-HIDDEN_LAYER_SIZE = 25
-NUM_LABELS = 10
-REG_LAMBDA = 2.5
-# NUM_ITERATIONS = 400
-
-print '\nReading training sets...'
-# reminder: set[image=0/label=1][sample]
-train_set, valid_set, test_set = read_set()
-
-print '\nInitializing neural network with:'
-print '- Input layer size:', INPUT_LAYER_SIZE
-print '- Number of hidden layers:', NUM_HIDDEN_LAYERS
-print '- Hidden layer(s) size:', HIDDEN_LAYER_SIZE
-print '- Number of output classes:', NUM_LABELS
-print '- Regularization lambda:', REG_LAMBDA
-params, topo = rand_initialize_weights(INPUT_LAYER_SIZE, NUM_HIDDEN_LAYERS, HIDDEN_LAYER_SIZE, NUM_LABELS)
-roll_params = np.concatenate([a.flatten() for a in params])
+def predict(X):
+    rand_params, topo = rand_initialize_weights(INPUT_LAYER_SIZE, NUM_HIDDEN_LAYERS, HIDDEN_LAYER_SIZE, NUM_LABELS)
+    if os.path.exists(PARAMS_FILE):
+        with gzip.open(PARAMS_FILE, 'rb') as f:
+            params = cPickle.load(f)
+        return nn_run(params, topo, X)
+    else:
+        return nn_run(rand_params, topo, X)
 
 
-def cost_function(PARAMS):
-    return nn_cost_function(PARAMS, topo, NUM_HIDDEN_LAYERS, NUM_LABELS, train_set[0], train_set[1], REG_LAMBDA)
+def train():
+    print '\nReading training sets...'
+    # reminder: set[image=0/label=1][sample]
+    train_set, valid_set, test_set = read_set()
 
-t0 = time()
-print '\nLearning parameters...'
-min_params, min_J, info = fmin_l_bfgs_b(cost_function, roll_params)
-print 'Total learning time: %s' % str(timedelta(seconds=time()-t0))
+    print '\nInitializing neural network with:'
+    print '- Input layer size:', INPUT_LAYER_SIZE
+    print '- Number of hidden layers:', NUM_HIDDEN_LAYERS
+    print '- Hidden layer(s) size:', HIDDEN_LAYER_SIZE
+    print '- Number of output classes:', NUM_LABELS
+    print '- Regularization lambda:', REG_LAMBDA
+    params, topo = rand_initialize_weights(INPUT_LAYER_SIZE, NUM_HIDDEN_LAYERS, HIDDEN_LAYER_SIZE, NUM_LABELS)
+    roll_params = np.concatenate([a.flatten() for a in params])
 
-print '\nPredicting...'
-predicted = predict(min_params, topo, valid_set[0])
 
-print '\nTraining set accuracy: %.4f%%' % (np.mean(predicted == valid_set[1]) * 100)
+    def cost_function(PARAMS):
+        return nn_cost_function(PARAMS, topo, NUM_HIDDEN_LAYERS, NUM_LABELS, train_set[0], train_set[1], REG_LAMBDA)
 
-print '\nFinished. Saving learned parameters...'
-with gzip.open('params.pkl.gz', 'wb') as f:
-    cPickle.dump(min_params, f)
+    t0 = time()
+    print '\nLearning parameters...'
+    min_params, min_J, info = fmin_l_bfgs_b(cost_function, roll_params)
+    print 'Total learning time: %s' % str(timedelta(seconds=time()-t0))
 
-print '\nOk.\n'
+    print '\nPredicting...'
+    predicted = nn_run(min_params, topo, valid_set[0])
+
+    print '\nTraining set accuracy: %.4f%%' % (np.mean(predicted == valid_set[1]) * 100)
+
+    print '\nFinished. Saving learned parameters...'
+    with gzip.open(PARAMS_FILE, 'wb') as f:
+        cPickle.dump(min_params, f)
+
+    print '\nOk.\n'
+
+if __name__ == '__main__':
+    train()

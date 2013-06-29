@@ -1,7 +1,8 @@
 __author__ = 'mgaldieri'
 # from django.conf import settings
-# from django.http import HttpResponse
-# from scipy.optimize import minimize
+from scipy.optimize import fmin_l_bfgs_b
+from time import time
+from datetime import timedelta
 import numpy as np
 import Image as im
 import cPickle, gzip, os, math
@@ -10,10 +11,6 @@ import cPickle, gzip, os, math
 def read_set():
     with gzip.open(os.path.join(os.path.pardir, os.path.join(os.path.pardir, os.path.join('dataset', 'mnist.pkl.gz')))) as f:
         return cPickle.load(f)
-    # sample = 435
-    # print train_set[1][sample]
-    # img = im.fromarray(train_set[0][sample].reshape(28, 28), 'I')
-    # img.show()
 
 
 def sigmoid(z):
@@ -28,6 +25,7 @@ def sigmoid_gradient(z):
 
 def rand_initialize_weights(input_layer_size, num_hidden_layers, hidden_layer_size, num_labels):
     weights = []
+    topology = []
     for i in range(num_hidden_layers + 1):
         if i < num_hidden_layers:
             if i == 0:
@@ -39,7 +37,17 @@ def rand_initialize_weights(input_layer_size, num_hidden_layers, hidden_layer_si
         else:
             epsilon = math.sqrt(6)/math.sqrt(hidden_layer_size + num_labels)
             weights.append(np.random.uniform(-epsilon, epsilon, (num_labels, hidden_layer_size + 1))) #(hidden_layer_size + 1, num_labels))) #
-    return np.asarray(weights)
+        topology.append(weights[i].shape)
+    return np.asarray(weights), topology
+
+
+def unroll_params(params, topology):
+    array = []
+    idx = 0
+    for s in topology:
+        array.append(np.array(params[idx:idx+(s[0]*s[1])]).reshape(s))
+        idx = (s[0]*s[1])
+    return np.array(array)
 
 
 def recode_labels(num_labels, labels):
@@ -51,22 +59,18 @@ def recode_labels(num_labels, labels):
     return vec_labels
 
 
-def nn_cost_function(nn_params, input_layer_size, num_hidden_layers, hidden_layer_size, num_labels, X, y, reg_lambda):
+def nn_cost_function(nn_params, nn_topology, num_hidden_layers, num_labels, X, y, reg_lambda):
+    # unroll parameters
+    params = unroll_params(nn_params, nn_topology)
+
     # compute forward propagation
-    activations = []
+    activations = [{'a': X, 'z': None}]
     x = np.atleast_2d(np.insert(X, 0, 1, 1))
     for l in range(num_hidden_layers + 1):
-        z = np.dot(x, nn_params[l].T)
+        z = np.dot(x, params[l].T)
         a = sigmoid(z)
-        print 'x:\n', x
-        print 'theta:\n', nn_params[l]
-        print 'z:\n', z
-        print 'a:\n', a
-        print ''
         activations.append({'a': a, 'z': z})
         x = np.atleast_2d(np.insert(a, 0, 1, 1))
-    print '-----\n'
-    print 'Activations:\n', activations, '\n'
     hypothesis = activations[-1]['a']
 
     # compute error
@@ -79,50 +83,95 @@ def nn_cost_function(nn_params, input_layer_size, num_hidden_layers, hidden_laye
 
     # compute the regularization term
     sum_vec = []
-    for a in nn_params:
+    for a in params:
         sum_vec.append(np.sum(np.square(a[:,1:])))
     reg = (float(reg_lambda)/(2*len(X))) * sum(sum_vec)
     J += reg
-    # print 'Cost:\n', J, '\n'
 
     # backpropagation
-    print 'Hypothesis:\n', hypothesis, '\n'
-
+    # calculate deltas
     deltas = []
-    params_grad = []
-    for l in range(num_hidden_layers + 1):
-        if l == 0:
-            deltas.append(hypothesis - y_vec)
-            DELTA = np.dot(deltas[-1], activations[-(l+1)]['a'].T)
+    for l in range(num_hidden_layers+1, 0, -1):
+        idx = l-(num_hidden_layers+1)
+        if l == (num_hidden_layers+1):
+            deltas.insert(0, hypothesis - y_vec)
         else:
-            # print nn_params[-l], deltas[-l].shape, sigmoid_gradient(np.insert(activations[-(l+1)]['z'], 0, 1, 1)).shape
-            deltas.append(np.dot(nn_params[l].T, deltas[-l]).T * sigmoid_gradient(np.insert(activations[-(l+1)]['z'], 0, 1, 1)))
-            DELTA = np.dot(deltas[-l][:,1:], activations[-(l+1)]['a'].T)
-        params_grad.append((1.0/len(X)) * DELTA)
+            deltas.insert(0, np.dot(deltas[idx], params[idx]) * sigmoid_gradient(np.insert(activations[idx-1]['z'], 0, 1, 1)))
 
-        print 'TESTE:\n', params_grad, '\n'
-    # print 'y:\n', y, '\n'
-    # print 'y_vec:\n', y_vec, '\n'
-    # print 'deltas:\n', deltas, '\n'
+    # calculate gradients
+    params_grad = []
+    for l in range(num_hidden_layers, -1, -1):
+        idx = l-(num_hidden_layers+1)
+        if l == num_hidden_layers:
+            DELTA = np.dot(deltas[-1].T, np.insert(activations[idx-1]['a'], 0, 1, 1))
+        else:
+            DELTA = np.dot(deltas[idx][:,1:].T, np.insert(activations[idx-1]['a'], 0, 1, 1))
+
+        params_grad.insert(0, (1.0/len(X)) * DELTA)
+
+        # regularize gradients, masking out the bias term
+        mask = np.insert(np.ones((params[l].shape[0],params[l].shape[1]-1)), 0, 0, 1)
+        params_grad[idx] += (reg_lambda/len(X)) * (mask * params[l])
+
+    # return a tuple containing the cost and the rolled gradients
+    return J, np.concatenate([a.flatten() for a in params_grad])
+
+
+def predict(nn_params, nn_topology, X):
+    # unroll params
+    params = unroll_params(nn_params, nn_topology)
+
+    # compute forward propagation
+    x = np.atleast_2d(np.insert(X, 0, 1, 1))
+    for l in range(len(nn_topology)):
+        z = np.dot(x, params[l].T)
+        a = sigmoid(z)
+        x = np.atleast_2d(np.insert(a, 0, 1, 1))
+    hypothesis = a
+    # print 'Hypothesis:\n', hypothesis
+    return hypothesis.argmax(axis=1)
+
 
 #
 # Constants
 #
-IMAGE_SIDE = 1
+IMAGE_SIDE = 28
 INPUT_LAYER_SIZE = IMAGE_SIDE**2
 NUM_HIDDEN_LAYERS = 1
-HIDDEN_LAYER_SIZE = 3
-NUM_LABELS = 2
-NUM_ITERATIONS = 400
+HIDDEN_LAYER_SIZE = 25
+NUM_LABELS = 10
+REG_LAMBDA = 2.5
+# NUM_ITERATIONS = 400
 
+print '\nReading training sets...'
 # reminder: set[image=0/label=1][sample]
 train_set, valid_set, test_set = read_set()
 
-# print np.atleast_2d([1,2,3,4,5,6,7,8,9,0,1,2,3,4,5,6,7,8,19,0,1,2,3,4,5,6,7,8,9,0])
-# print np.array([[1],[0]]).shape
-params = rand_initialize_weights(INPUT_LAYER_SIZE, NUM_HIDDEN_LAYERS, HIDDEN_LAYER_SIZE, NUM_LABELS)
-nn_cost_function(params, INPUT_LAYER_SIZE, NUM_HIDDEN_LAYERS, HIDDEN_LAYER_SIZE, NUM_LABELS, np.atleast_2d([[0.123]]), np.asarray([1, 0], dtype=int), 1)
-# print np.square(params)
-# print np.asmatrix(np.square(params)).cumsum()
-# print train_set[1][443]
-# print recode_labels(NUM_LABELS, train_set[1])[443]
+print '\nInitializing neural network with:'
+print '- Input layer size:', INPUT_LAYER_SIZE
+print '- Number of hidden layers:', NUM_HIDDEN_LAYERS
+print '- Hidden layer(s) size:', HIDDEN_LAYER_SIZE
+print '- Number of output classes:', NUM_LABELS
+print '- Regularization lambda:', REG_LAMBDA
+params, topo = rand_initialize_weights(INPUT_LAYER_SIZE, NUM_HIDDEN_LAYERS, HIDDEN_LAYER_SIZE, NUM_LABELS)
+roll_params = np.concatenate([a.flatten() for a in params])
+
+
+def cost_function(PARAMS):
+    return nn_cost_function(PARAMS, topo, NUM_HIDDEN_LAYERS, NUM_LABELS, train_set[0], train_set[1], REG_LAMBDA)
+
+t0 = time()
+print '\nLearning parameters...'
+min_params, min_J, info = fmin_l_bfgs_b(cost_function, roll_params)
+print 'Total learning time: %s' % str(timedelta(seconds=time()-t0))
+
+print '\nPredicting...'
+predicted = predict(min_params, topo, valid_set[0])
+
+print '\nTraining set accuracy: %.4f%%' % (np.mean(predicted == valid_set[1]) * 100)
+
+print '\nFinished. Saving learned parameters...'
+with gzip.open('params.pkl.gz', 'wb') as f:
+    cPickle.dump(min_params, f)
+
+print '\nOk.\n'

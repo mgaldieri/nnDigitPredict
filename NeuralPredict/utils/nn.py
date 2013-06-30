@@ -1,3 +1,4 @@
+#! /usr/bin/env python
 __author__ = 'mgaldieri'
 # from django.conf import settings
 from scipy.optimize import fmin_l_bfgs_b
@@ -14,12 +15,19 @@ import cPickle, gzip, os, math
 IMAGE_SIDE = 28
 INPUT_LAYER_SIZE = IMAGE_SIDE**2
 NUM_HIDDEN_LAYERS = 1
-HIDDEN_LAYER_SIZE = 25
+HIDDEN_LAYER_SIZE = 30
 NUM_LABELS = 10
-REG_LAMBDA = 2.5
-# NUM_ITERATIONS = 400
+REG_LAMBDA = 1.7
+NUM_TRAIN_SAMPLES = 10
 
 PARAMS_FILE = 'params.pkl.gz'
+
+CURRENT_ITERATION = 0
+
+
+#
+# Helper methods
+#
 
 
 def read_set():
@@ -27,14 +35,12 @@ def read_set():
         return cPickle.load(f)
 
 
-def sigmoid(z):
-    z = np.asarray(z)
-    return np.ones(z.shape)/(np.ones(z.shape) + np.exp(np.negative(z)))
-
-
-def sigmoid_gradient(z):
-    z = np.asarray(z)
-    return sigmoid(z)*(np.ones(z.shape) - sigmoid(z))
+def sub_set(set):
+    if NUM_TRAIN_SAMPLES == 'all':
+        return set[0], set[1]
+    else:
+        idx = np.random.choice(set[0].shape[0], NUM_TRAIN_SAMPLES, replace=False)
+        return set[0][idx,:], set[1][idx]
 
 
 def rand_initialize_weights(input_layer_size, num_hidden_layers, hidden_layer_size, num_labels):
@@ -55,15 +61,6 @@ def rand_initialize_weights(input_layer_size, num_hidden_layers, hidden_layer_si
     return np.asarray(weights), topology
 
 
-def unroll_params(params, topology):
-    array = []
-    idx = 0
-    for s in topology:
-        array.append(np.array(params[idx:idx+(s[0]*s[1])]).reshape(s))
-        idx = (s[0]*s[1])
-    return np.array(array)
-
-
 def recode_labels(num_labels, labels):
     # num_labels = len(labels)
     comp = np.arange(num_labels)
@@ -71,6 +68,36 @@ def recode_labels(num_labels, labels):
     for i in range(vec_labels.shape[0]):
         vec_labels[i] = np.equal(labels[i], comp)
     return vec_labels
+
+
+def update_stdout(xk):
+    global CURRENT_ITERATION
+    CURRENT_ITERATION += 1
+    print 'Current iteration: '+str(CURRENT_ITERATION)+'               \r',
+
+
+#
+# Neural network methods
+#
+
+
+def sigmoid(z):
+    z = np.asarray(z)
+    return np.ones(z.shape)/(np.ones(z.shape) + np.exp(np.negative(z)))
+
+
+def sigmoid_gradient(z):
+    z = np.asarray(z)
+    return sigmoid(z)*(np.ones(z.shape) - sigmoid(z))
+
+
+def unroll_params(params, topology):
+    array = []
+    idx = 0
+    for s in topology:
+        array.append(np.array(params[idx:idx+(s[0]*s[1])]).reshape(s))
+        idx = (s[0]*s[1])
+    return np.array(array)
 
 
 def nn_cost_function(nn_params, nn_topology, num_hidden_layers, num_labels, X, y, reg_lambda):
@@ -131,6 +158,11 @@ def nn_cost_function(nn_params, nn_topology, num_hidden_layers, num_labels, X, y
     return J, np.concatenate([a.flatten() for a in params_grad])
 
 
+#
+# Run methods
+#
+
+
 def nn_run(nn_params, nn_topology, X):
     # unroll params
     params = unroll_params(nn_params, nn_topology)
@@ -157,7 +189,13 @@ def predict(img):
         return nn_run(rand_params, topo, X)
 
 
+#
+# Main entry point
+#
+
+
 def train():
+    iteration = 0
     print '\nReading training sets...'
     # reminder: set[image=0/label=1][sample]
     train_set, valid_set, test_set = read_set()
@@ -168,22 +206,24 @@ def train():
     print '- Hidden layer(s) size:', HIDDEN_LAYER_SIZE
     print '- Number of output classes:', NUM_LABELS
     print '- Regularization lambda:', REG_LAMBDA
+    print '- Number of training samples: ', NUM_TRAIN_SAMPLES
     params, topo = rand_initialize_weights(INPUT_LAYER_SIZE, NUM_HIDDEN_LAYERS, HIDDEN_LAYER_SIZE, NUM_LABELS)
     roll_params = np.concatenate([a.flatten() for a in params])
 
+    sub_train_imgs, sub_train_labels = sub_set(train_set)
 
     def cost_function(PARAMS):
-        return nn_cost_function(PARAMS, topo, NUM_HIDDEN_LAYERS, NUM_LABELS, train_set[0], train_set[1], REG_LAMBDA)
+        return nn_cost_function(PARAMS, topo, NUM_HIDDEN_LAYERS, NUM_LABELS, sub_train_imgs, sub_train_labels, REG_LAMBDA)
 
     t0 = time()
     print '\nLearning parameters...'
-    min_params, min_J, info = fmin_l_bfgs_b(cost_function, roll_params)
+    min_params, min_J, info = fmin_l_bfgs_b(cost_function, roll_params, callback=update_stdout)
+    print 'Total number of iterations: %d' % info['nit']
     print 'Total learning time: %s' % str(timedelta(seconds=time()-t0))
 
-    print '\nPredicting...'
+    print '\nChecking accuracy...'
     predicted = nn_run(min_params, topo, valid_set[0])
-
-    print '\nTraining set accuracy: %.4f%%' % (np.mean(predicted == valid_set[1]) * 100)
+    print 'Training set accuracy: %.4f%%' % (np.mean(predicted == valid_set[1]) * 100)
 
     print '\nFinished. Saving learned parameters...'
     with gzip.open(PARAMS_FILE, 'wb') as f:

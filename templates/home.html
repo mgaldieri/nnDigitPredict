@@ -20,7 +20,9 @@ function getCookie(name) {
 $( document ).ready(function() {
 $.ajaxSetup({
     beforeSend: function(xhr, settings) {
-      xhr.setRequestHeader("X-CSRFToken", getCookie('csrftoken'));
+        if (!(/^http:.*/.test(settings.url) || /^https:.*/.test(settings.url))) {
+            xhr.setRequestHeader("X-CSRFToken", getCookie('csrftoken'));
+        }
     }
   });
   function stopDefault(e) {
@@ -34,10 +36,12 @@ $.ajaxSetup({
   }
   var path=[];
     function renderize(){
-        var canvas = $('canvas')[0];
+      var canvas = $('canvas')[0];
       var context = canvas.getContext('2d');
       // set line width for all lines
       context.lineWidth = 25;
+      // set stroke style for all lines
+      context.strokeStyle = 'white';
       // round line join (middle)
       context.beginPath();
       context.moveTo(path[path.length-1][0].x, path[path.length-1][0].y);
@@ -62,7 +66,11 @@ $.ajaxSetup({
         {
             img : canvas.toDataURL('image/jpeg')
         },
-        function(data) {});
+        function(data) {
+            if (data) {
+                $('#result').html(data.predicted);
+            }
+        });
     
   };
   $('canvas').mouseup(o);
@@ -73,13 +81,14 @@ $.ajaxSetup({
     var context = canvas.getContext('2d');
     path[path.length-1].push({x:e.pageX-canvas.offsetLeft,y:e.pageY-canvas.offsetTop});
     renderize();
-    console.debug(canvas.offsetLeft);
+    // console.debug(canvas.offsetLeft);
   });
   $("a#reset").click(function(e){
     var canvas=$('canvas')[0];
     var context = canvas.getContext('2d');
     context.clearRect(0, 0, canvas.width, canvas.height);
-    canvas.clearRect();
+    // canvas.clearRect();
+    $('#result').html('');
   });
 });
 </script>
@@ -114,10 +123,11 @@ $.ajaxSetup({
 </style>
 
 <body>
+{% csrf_token %}
 
 <canvas width="430" height="430"></canvas>
 
-<div id='result'>8</div>
+<div id='result'></div>
 <a href="javascript:void(0);" id="reset">reset</a>
 </body>
 </html>

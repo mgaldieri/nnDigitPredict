@@ -166,27 +166,26 @@ def nn_cost_function(nn_params, nn_topology, num_hidden_layers, num_labels, X, y
 def nn_run(nn_params, nn_topology, X):
     # unroll params
     params = unroll_params(nn_params, nn_topology)
-
     # compute forward propagation
-    x = np.atleast_2d(np.insert(X, 0, 1, 1))
+    x = np.insert(np.atleast_2d(X), 0, 1, 1)
     for l in range(len(nn_topology)):
         z = np.dot(x, params[l].T)
         a = sigmoid(z)
         x = np.atleast_2d(np.insert(a, 0, 1, 1))
-    hypothesis = a
-    return hypothesis.argmax(axis=1)
+    hypothesis = a.argmax(axis=1)
+    return hypothesis if len(hypothesis) > 1 else hypothesis[0]
 
 
 def predict(img):
-    thumb = pil.thumbnail((IMAGE_SIDE,IMAGE_SIDE), pil.ANTIALIAS)
-    X = np.array(thumb)
+    img.thumbnail((IMAGE_SIDE,IMAGE_SIDE), pil.ANTIALIAS)
+    X = np.concatenate([a.flatten() for a in np.array(img.convert('L'))])
     rand_params, topo = rand_initialize_weights(INPUT_LAYER_SIZE, NUM_HIDDEN_LAYERS, HIDDEN_LAYER_SIZE, NUM_LABELS)
     if os.path.exists(PARAMS_FILE):
         with gzip.open(PARAMS_FILE, 'rb') as f:
             params = cPickle.load(f)
-        return nn_run(params, topo, X)
+        return nn_run(np.concatenate([a.flatten() for a in params]), topo, X)
     else:
-        return nn_run(rand_params, topo, X)
+        return nn_run(np.concatenate([a.flatten() for a in rand_params]), topo, X)
 
 
 #
@@ -214,7 +213,8 @@ def train():
 
     def cost_function(PARAMS):
         return nn_cost_function(PARAMS, topo, NUM_HIDDEN_LAYERS, NUM_LABELS, sub_train_imgs, sub_train_labels, REG_LAMBDA)
-
+    # im = pil.fromarray(sub_train_imgs[9].reshape((28,28)), 'L')
+    # im.show()
     t0 = time()
     print '\nLearning parameters...'
     min_params, min_J, info = fmin_l_bfgs_b(cost_function, roll_params, callback=update_stdout)

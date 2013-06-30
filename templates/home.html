@@ -52,7 +52,7 @@ $.ajaxSetup({
       context.stroke();
   }
   
-  
+  // Mouse events
   $('canvas').mousedown(function(e){
     var canvas=e.target;
     if(!canvas.drawing) canvas.drawing=true;
@@ -83,6 +83,27 @@ $.ajaxSetup({
     renderize();
     // console.debug(canvas.offsetLeft);
   });
+
+  // Touch events
+  $('canvas').bind('touchstart', function(e){
+    e.preventDefault();
+    var canvas=e.target;
+    if(!canvas.drawing) canvas.drawing=true;
+    path.push([]);
+  });
+  $('canvas').bind('touchend', o);
+  //$('canvas').mouseout(o);
+  $('canvas').bind('touchmove', function(e){
+    e.preventDefault();
+    var touch = window.event.targetTouches[0];
+    var canvas=e.target;
+    if(!canvas.drawing) return;
+    var context = canvas.getContext('2d');
+    path[path.length-1].push({x: touch.pageX-canvas.offsetLeft,y: touch.pageY-canvas.offsetTop});
+    renderize();
+    // console.debug(canvas.offsetLeft);
+  });
+
   $("a#reset").click(function(e){
     var canvas=$('canvas')[0];
     var context = canvas.getContext('2d');
@@ -114,6 +135,11 @@ $.ajaxSetup({
 		font-weight:bold;
 		color:white;
 	}
+    #reset{
+        font-family: Helvetica, Arial, Sans Serif;
+        font-size: 14px;
+        color: white;
+    }
 	body{
     -moz-user-select: none;
     -khtml-user-select: none;

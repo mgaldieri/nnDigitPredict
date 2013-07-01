@@ -137,7 +137,8 @@ def nn_cost_function(nn_params, nn_topology, num_hidden_layers, num_labels, X, y
         if l == (num_hidden_layers+1):
             deltas.insert(0, hypothesis - y_vec)
         else:
-            deltas.insert(0, np.dot(deltas[idx], params[idx]) * sigmoid_gradient(np.insert(activations[idx-1]['z'], 0, 1, 1)))
+            delta = np.dot(deltas[idx], params[idx]) * sigmoid_gradient(np.insert(activations[idx-1]['z'], 0, 1, 1))
+            deltas.insert(0, delta[:,1:])
 
     # calculate gradients
     params_grad = []
@@ -146,7 +147,7 @@ def nn_cost_function(nn_params, nn_topology, num_hidden_layers, num_labels, X, y
         if l == num_hidden_layers:
             DELTA = np.dot(deltas[-1].T, np.insert(activations[idx-1]['a'], 0, 1, 1))
         else:
-            DELTA = np.dot(deltas[idx][:,1:].T, np.insert(activations[idx-1]['a'], 0, 1, 1))
+            DELTA = np.dot(deltas[idx].T, np.insert(activations[idx-1]['a'], 0, 1, 1))
 
         params_grad.insert(0, (1.0/len(X)) * DELTA)
 
@@ -178,19 +179,16 @@ def nn_run(nn_params, nn_topology, X):
 
 def predict(img):
     img.thumbnail((IMAGE_SIDE,IMAGE_SIDE), pil.ANTIALIAS)
-    # img.convert('L').show()
     X = np.array(img.convert('F'))
     X /= 255.0
     X = np.concatenate([a.flatten() for a in X]) #np.array(img.convert('L'))])
-    #pil.fromarray(X.reshape((28,28))*255.0).show()
     rand_params, topo = rand_initialize_weights(INPUT_LAYER_SIZE, NUM_HIDDEN_LAYERS, HIDDEN_LAYER_SIZE, NUM_LABELS)
-    if os.path.exists(PARAMS_FILE):
-        with gzip.open(PARAMS_FILE, 'rb') as f:
+    try:
+        with gzip.open(os.path.join(os.path.dirname(__file__), PARAMS_FILE), 'rb') as f:
             params = cPickle.load(f)
         return nn_run(np.concatenate([a.flatten() for a in params]), topo, X)
-    else:
+    except IOError:
         return nn_run(np.concatenate([a.flatten() for a in rand_params]), topo, X)
-
 
 #
 # Main entry point
@@ -198,7 +196,6 @@ def predict(img):
 
 
 def train():
-    iteration = 0
     print '\nReading training sets...'
     # reminder: set[image=0/label=1][sample]
     train_set, valid_set, test_set = read_set()
@@ -253,5 +250,5 @@ def debug_imgs():
     mosaic.convert('L').save('samples.png')
 
 if __name__ == '__main__':
-    # train()
-    debug_imgs()
+    train()
+    # debug_imgs()

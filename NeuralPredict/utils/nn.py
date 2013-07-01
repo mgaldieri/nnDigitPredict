@@ -182,7 +182,7 @@ def predict(img):
     X = np.array(img.convert('F'))
     X /= 255.0
     X = np.concatenate([a.flatten() for a in X]) #np.array(img.convert('L'))])
-    pil.fromarray(X.reshape((28,28))*255.0).show()
+    #pil.fromarray(X.reshape((28,28))*255.0).show()
     rand_params, topo = rand_initialize_weights(INPUT_LAYER_SIZE, NUM_HIDDEN_LAYERS, HIDDEN_LAYER_SIZE, NUM_LABELS)
     if os.path.exists(PARAMS_FILE):
         with gzip.open(PARAMS_FILE, 'rb') as f:

@@ -15,10 +15,10 @@ import cPickle, gzip, os, math
 IMAGE_SIDE = 28
 INPUT_LAYER_SIZE = IMAGE_SIDE**2
 NUM_HIDDEN_LAYERS = 1
-HIDDEN_LAYER_SIZE = 25
+HIDDEN_LAYER_SIZE = 30
 NUM_LABELS = 10
 REG_LAMBDA = 1.7
-NUM_TRAIN_SAMPLES = 10
+NUM_TRAIN_SAMPLES = 10000
 
 PARAMS_FILE = 'params.pkl.gz'
 
@@ -177,7 +177,10 @@ def nn_run(nn_params, nn_topology, X):
 
 
 def predict(img):
-    img.thumbnail((IMAGE_SIDE,IMAGE_SIDE), pil.ANTIALIAS)
+    img.thumbnail((IMAGE_SIDE,IMAGE_SIDE))
+    img.convert('L').show()
+    X = np.array(img.convert('F'))
+    X /= 255.0
     X = np.concatenate([a.flatten() for a in np.array(img.convert('L'))])
     rand_params, topo = rand_initialize_weights(INPUT_LAYER_SIZE, NUM_HIDDEN_LAYERS, HIDDEN_LAYER_SIZE, NUM_LABELS)
     if os.path.exists(PARAMS_FILE):
@@ -213,8 +216,7 @@ def train():
 
     def cost_function(PARAMS):
         return nn_cost_function(PARAMS, topo, NUM_HIDDEN_LAYERS, NUM_LABELS, sub_train_imgs, sub_train_labels, REG_LAMBDA)
-    # im = pil.fromarray(sub_train_imgs[9].reshape((28,28)), 'L')
-    # im.show()
+    
     t0 = time()
     print '\nLearning parameters...'
     min_params, min_J, info = fmin_l_bfgs_b(cost_function, roll_params, callback=update_stdout)
@@ -231,5 +233,24 @@ def train():
 
     print '\nOk.\n'
 
+
+def debug_imgs():
+    MOSAIC_SIDE = 10
+    global NUM_TRAIN_SAMPLES
+    NUM_TRAIN_SAMPLES = MOSAIC_SIDE ** 2
+
+    train, cross, test = read_set()
+    sub_samples, sub_labels = sub_set(train)
+
+    mosaic = pil.new('F', (MOSAIC_SIDE*IMAGE_SIDE, MOSAIC_SIDE*IMAGE_SIDE))
+    for i in range(MOSAIC_SIDE):
+        for j in range(MOSAIC_SIDE):
+            img = pil.fromarray(sub_samples[(i*MOSAIC_SIDE)+j,:].reshape((28,28))*255.0)
+            offset = i*IMAGE_SIDE, j*IMAGE_SIDE
+            mosaic.paste(img, offset)
+    # mosaic.show()
+    mosaic.convert('L').save('samples.png')
+
 if __name__ == '__main__':
-    train()
+    # train()
+    debug_imgs()

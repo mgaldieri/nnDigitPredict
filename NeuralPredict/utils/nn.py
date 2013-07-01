@@ -177,11 +177,12 @@ def nn_run(nn_params, nn_topology, X):
 
 
 def predict(img):
-    img.thumbnail((IMAGE_SIDE,IMAGE_SIDE))
-    img.convert('L').show()
+    img.thumbnail((IMAGE_SIDE,IMAGE_SIDE), pil.ANTIALIAS)
+    # img.convert('L').show()
     X = np.array(img.convert('F'))
     X /= 255.0
-    X = np.concatenate([a.flatten() for a in np.array(img.convert('L'))])
+    X = np.concatenate([a.flatten() for a in X]) #np.array(img.convert('L'))])
+    pil.fromarray(X.reshape((28,28))*255.0).show()
     rand_params, topo = rand_initialize_weights(INPUT_LAYER_SIZE, NUM_HIDDEN_LAYERS, HIDDEN_LAYER_SIZE, NUM_LABELS)
     if os.path.exists(PARAMS_FILE):
         with gzip.open(PARAMS_FILE, 'rb') as f:

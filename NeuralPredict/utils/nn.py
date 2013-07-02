@@ -15,15 +15,16 @@ import cPickle, gzip, os, math
 IMAGE_SIDE = 28
 INPUT_LAYER_SIZE = IMAGE_SIDE**2
 NUM_HIDDEN_LAYERS = 1
-HIDDEN_LAYER_SIZE = 30
+HIDDEN_LAYER_SIZE = 25
 NUM_LABELS = 10
 REG_LAMBDA = 1.7
 NUM_TRAIN_SAMPLES = 10000
 
 PARAMS_FILE = 'params.pkl.gz'
+CONFIG_FILE = 'params.cfg.gz'
 
 CURRENT_ITERATION = 0
-
+ACCURACY = 0.0
 
 #
 # Helper methods
@@ -68,6 +69,30 @@ def recode_labels(num_labels, labels):
     for i in range(vec_labels.shape[0]):
         vec_labels[i] = np.equal(labels[i], comp)
     return vec_labels
+
+
+def gen_config():
+    return {'image_side': IMAGE_SIDE,
+            'input_layer_size': INPUT_LAYER_SIZE,
+            'num_hidden_layers': NUM_HIDDEN_LAYERS,
+            'hidden_layer_size': HIDDEN_LAYER_SIZE,
+            'num_labels': NUM_LABELS,
+            'reg_lambda': REG_LAMBDA,
+            'num_train_samples': NUM_TRAIN_SAMPLES,
+            'accuracy': ACCURACY}
+
+
+def load_config(config=None):
+    if config:
+        global IMAGE_SIDE, INPUT_LAYER_SIZE, NUM_HIDDEN_LAYERS, HIDDEN_LAYER_SIZE, NUM_LABELS, REG_LAMBDA, NUM_TRAIN_SAMPLES, ACCURACY
+        IMAGE_SIDE = config['image_side']
+        INPUT_LAYER_SIZE = config['input_layer_size']
+        NUM_HIDDEN_LAYERS = config['num_hidden_layers']
+        HIDDEN_LAYER_SIZE = config['hidden_layer_size']
+        NUM_LABELS = config['num_labels']
+        REG_LAMBDA = config['reg_lambda']
+        NUM_TRAIN_SAMPLES = config['num_train_samples']
+        ACCURACY = config['accuracy']
 
 
 def update_stdout(xk):
@@ -182,12 +207,19 @@ def predict(img):
     X = np.array(img.convert('F'))
     X /= 255.0
     X = np.concatenate([a.flatten() for a in X]) #np.array(img.convert('L'))])
-    rand_params, topo = rand_initialize_weights(INPUT_LAYER_SIZE, NUM_HIDDEN_LAYERS, HIDDEN_LAYER_SIZE, NUM_LABELS)
     try:
         with gzip.open(os.path.join(os.path.dirname(__file__), PARAMS_FILE), 'rb') as f:
             params = cPickle.load(f)
+        try:
+            with gzip.open(os.path.join(os.path.dirname(__file__), CONFIG_FILE), 'rb') as f:
+                config = cPickle.load(f)
+                load_config(config)
+        except IOError:
+            raise Exception('Error loading configurations file...')
+        rand_params, topo = rand_initialize_weights(INPUT_LAYER_SIZE, NUM_HIDDEN_LAYERS, HIDDEN_LAYER_SIZE, NUM_LABELS)
         return nn_run(np.concatenate([a.flatten() for a in params]), topo, X)
     except IOError:
+        rand_params, topo = rand_initialize_weights(INPUT_LAYER_SIZE, NUM_HIDDEN_LAYERS, HIDDEN_LAYER_SIZE, NUM_LABELS)
         return nn_run(np.concatenate([a.flatten() for a in rand_params]), topo, X)
 
 #
@@ -223,12 +255,15 @@ def train():
 
     print '\nChecking accuracy...'
     predicted = nn_run(min_params, topo, valid_set[0])
-    print 'Training set accuracy: %.4f%%' % (np.mean(predicted == valid_set[1]) * 100)
+    global ACCURACY
+    ACCURACY = np.mean(predicted == valid_set[1]) * 100
+    print 'Training set accuracy: %.4f%%' % ACCURACY
 
     print '\nFinished. Saving learned parameters...'
-    with gzip.open(PARAMS_FILE, 'wb') as f:
+    with gzip.open(os.path.join(os.path.dirname(__file__), PARAMS_FILE), 'wb') as f:
         cPickle.dump(min_params, f)
-
+    with gzip.open(os.path.join(os.path.dirname(__file__), CONFIG_FILE), 'wb') as f:
+        cPickle.dump(gen_config(), f)
     print '\nOk.\n'
 
 
